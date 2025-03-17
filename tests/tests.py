@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import json
 import re
+from unittest import skipIf
 
 from django.core import serializers
 from django.forms.models import modelform_factory
@@ -10,6 +11,7 @@ from django.test import TestCase, Client
 from django.utils.safestring import mark_safe
 from django.test.utils import override_settings
 from django.utils.version import get_version, get_version_tuple
+from django import VERSION
 
 from django.contrib import admin
 
@@ -440,13 +442,27 @@ class TemplatetagMediaUrlTests(MIUTestCase):
         finally:
             settings.MARKITUP_SKIN = _old_miu_skin
 
+    # This duplicate test setup is a bit clunky, because STATICFILES_STORAGE is removed
+    # in Django 5.1, but STORAGES is only added in 4.2 and we want to test older versions
+    # and we can't have both definitions in the same settings specification
+    @skipIf(VERSION[0] > 4, "Django 5+ no longer supports STATICFILES_STORAGE")
     @override_settings(STATICFILES_STORAGE='tests.test_storage.SomeCustomStorage')
-    def test_honor_staticfiles_storage(self):
+    def test_honor_staticfiles_storage_pre_django_5(self):
         """Should not circumvent the user's STATICFILES_STORAGE setting"""
         self._reset_storage()
         self.prefix = 'https://cdn.example.com/static'
         out = self._get_expected_media()
         self.assertHTMLEqual(self._get_media(), out)
+
+    @skipIf(VERSION[0] < 5, "Older django versions don't support STORAGES")
+    @override_settings(STORAGES = { 'staticfiles': { 'BACKEND': 'tests.test_storage.SomeCustomStorage' } })
+    def test_honor_staticfiles_storage_post_django_5(self):
+        """Should not circumvent the user's STATICFILES_STORAGE setting"""
+        self._reset_storage()
+        self.prefix = 'https://cdn.example.com/static'
+        out = self._get_expected_media()
+        self.assertHTMLEqual(self._get_media(), out)
+
 
 
 class WidgetMediaUrlTests(TemplatetagMediaUrlTests):
