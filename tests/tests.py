@@ -114,11 +114,11 @@ class MarkupFieldTests(TestCase):
 
     def testRenderWith(self):
         self.post.body.render_with(str('tests.filter.testfilter_upper'), skip=['a', 's'])
-        self.assertEquals(str(self.post.body), "REPLaCE THIs TEXT")
+        self.assertEqual(str(self.post.body), "REPLaCE THIs TEXT")
 
     def testRenderWithNoArgs(self):
         self.post.body.render_with(str('tests.filter.testfilter_upper'))
-        self.assertEquals(str(self.post.body), "REPLACE THIS TEXT")
+        self.assertEqual(str(self.post.body), "REPLACE THIS TEXT")
 
 
 class MarkupFieldSerializationTests(TestCase):
@@ -183,7 +183,7 @@ class MarkupFieldFormSaveTests(TestCase):
         form.save()
 
         actual = Post.objects.get(title=self.data['title'])
-        self.assertEquals(actual.body.raw, self.data['body'])
+        self.assertEqual(actual.body.raw, self.data['body'])
 
     def testFormUpdate(self):
         existing = Post.objects.create(title=self.data['title'], body=self.data['body'])
@@ -193,7 +193,7 @@ class MarkupFieldFormSaveTests(TestCase):
         form.save()
 
         actual = Post.objects.get(title=update['title'])
-        self.assertEquals(actual.body.raw, update['body'])
+        self.assertEqual(actual.body.raw, update['body'])
 
 
 class HiddenFieldFormTests(TestCase):
@@ -237,7 +237,7 @@ class PreviewTests(TestCase):
 
 class MIUTestCase(TestCase):
     def assertIn(self, needle, haystack, reverse=False):
-        func = reverse and self.failIf or self.failUnless
+        func = reverse and self.assertFalse or self.assertTrue
         descrip = reverse and 'in' or 'not in'
         func(needle in haystack,
              "'%s' %s '%s'" % (needle, descrip, haystack))
